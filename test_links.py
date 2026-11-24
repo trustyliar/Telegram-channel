@@ -38,3 +38,13 @@ def test_search_page():
     assert "tag=me-21" in new and "dealztrendz" not in new and "qid" not in new
     assert "k=sparx" in new and "rh=n:157,p_6:A1" in new
     assert key.startswith("url:")
+
+
+def test_chunk_and_strip():
+    from links import chunk_text, tag_amazon_url
+    text = "\n\n".join(f"line {i} " + "x" * 300 for i in range(30))
+    parts = chunk_text(text)
+    assert len(parts) > 1 and all(len(p) <= 4000 for p in parts)
+    assert chunk_text("short") == ["short"]
+    new, _ = tag_amazon_url("https://www.amazon.in/s?k=a&pd_rd_r=zzz&content-id=amzn1.sym.1&pf_rd_p=q", "me-21")
+    assert "pd_rd_r" not in new and "content-id" not in new and "pf_rd_p" not in new and "k=a" in new

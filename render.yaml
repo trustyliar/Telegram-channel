@@ -1,0 +1,14 @@
+services:
+  - type: worker
+    name: telegram-deal-bot
+    runtime: docker
+    autoDeploy: true
+    envVars:
+      - { key: API_ID, sync: false }
+      - { key: API_HASH, sync: false }
+      - { key: SESSION_STRING, sync: false }
+      - { key: AMAZON_TAG, sync: false }
+      - { key: SOURCE_INVITE, value: OyiJYrTZZH8zZjRi }
+      - { key: TARGET_INVITE, value: jPNcZM0QQ3Y5OWJl }
+      - { key: DRY_RUN, value: "1" }
+      - { key: DEDUP_HOURS, value: "12" }

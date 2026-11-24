@@ -16,7 +16,7 @@ from telethon.errors import UserAlreadyParticipantError
 from telethon.tl.functions.messages import CheckChatInviteRequest, ImportChatInviteRequest
 from telethon.tl.types import ChatInviteAlready, MessageMediaPhoto
 
-from links import rewrite_text
+from links import chunk_text, rewrite_text
 
 load_dotenv("config.env")
 load_dotenv()
@@ -95,9 +95,13 @@ async def main():
         if DRY_RUN:
             return
         if m.media and isinstance(m.media, MessageMediaPhoto):
-            await client.send_file(target, m.media, caption=out, parse_mode="md")
-        else:
-            await client.send_message(target, out, parse_mode="md", link_preview=True)
+            if len(out) <= 1024:  # Telegram caption limit
+                await client.send_file(target, m.media, caption=out, parse_mode="md")
+                mark(asins)
+                return
+            await client.send_file(target, m.media)
+        for i, part in enumerate(chunk_text(out)):  # 4096-char message limit
+            await client.send_message(target, part, parse_mode="md", link_preview=(i == 0))
         mark(asins)
 
     await client.run_until_disconnected()

@@ -46,7 +46,9 @@ def build_amazon_url(asin: str, tag: str, domain: str = "amazon.in") -> str:
     return f"https://www.{domain}/dp/{asin}?tag={tag}"
 
 
-DROP_PARAMS = {"tag", "ascsubtag", "linkcode", "ref", "ref_", "btn_ref", "btn_type", "qid", "ds", "dc", "th", "psc"}
+DROP_PARAMS = {"tag", "ascsubtag", "linkcode", "ref", "ref_", "btn_ref", "btn_type", "qid", "ds", "dc", "th", "psc",
+               "pd_rd_r", "pd_rd_w", "pd_rd_wg", "pd_rd_i", "content-id",
+               "pf_rd_r", "pf_rd_p", "pf_rd_s", "pf_rd_t", "pf_rd_i", "pf_rd_m"}
 
 
 def tag_amazon_url(url: str, tag: str):
@@ -102,3 +104,21 @@ async def rewrite_text(text: str, tag: str, client: httpx.AsyncClient, extra_url
     new = re.sub(r"[ \t]+\n", "\n", new)
     new = re.sub(r"\n{3,}", "\n\n", new).strip()
     return new, asins, others
+
+
+def chunk_text(text: str, limit: int = 4000) -> list[str]:
+    """Split text into pieces under Telegram's 4096-char message limit, on blank lines, then lines."""
+    if len(text) <= limit:
+        return [text]
+    chunks, cur = [], ""
+    for block in text.split("\n\n"):
+        for piece in ([block] if len(block) <= limit else block.split("\n")):
+            sep = "\n\n" if cur else ""
+            if len(cur) + len(sep) + len(piece) > limit and cur:
+                chunks.append(cur)
+                cur = piece
+            else:
+                cur += sep + piece
+    if cur:
+        chunks.append(cur)
+    return chunks
